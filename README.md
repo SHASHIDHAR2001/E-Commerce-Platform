@@ -30,29 +30,31 @@ This system consists of two independent microservices:
 - Order status management with state transition validation
 - Integration with Inventory Service for stock verification
 
-                     ┌──────────────────────────┐
-                     │      Client / Admin UI   │
-                     └──────────────┬───────────┘
-                                    │ REST APIs
-                                    ▼
-        ┌───────────────────────────────────────────────────────┐
-        │                          AWS EC2                      │
-        │                                                       │
-        │   ┌─────────────────────────────┐    ┌────────────┐  │
-        │   │  Order Service (8081)      │    │ RabbitMQ    │  │
-        │   │  REST + Async Events       │    │ 5672/15672   │  │
-        │   └─────────────────────────────┘    └────────────┘  │
-        │                ▲ REST Call                           │
-        │                │                                      │
-        │   ┌─────────────────────────────┐                    │
-        │   │ Inventory Service (8082)   │                    │
-        │   │ Stock Validation           │                    │
-        │   └─────────────────────────────┘                    │
-        └──────────────────────┬───────────────────────────────┘
-                               │
-                      JDBC Connection
-                               ▼
-                  AWS RDS PostgreSQL (Production)
+                         ┌──────────────────────────┐
+                         │     Swagger API UI       │
+                         │ (Interactive API Testing)│
+                         └──────────────┬───────────┘
+                                        │ REST APIs
+                                        ▼
+            ┌───────────────────────────────────────────────────────┐
+            │                          AWS EC2                      │
+            │                                                       │
+            │   ┌─────────────────────────────┐    ┌────────────┐   │
+            │   │  Order Service (8081)       │    │ RabbitMQ   │   │
+            │   │  REST + Async Events        │    │ 5672/15672 │   │
+            │   └─────────────────────────────┘    └────────────┘   │
+            │                ▲ REST Call                            │
+            │                │                                      │
+            │   ┌─────────────────────────────┐                     │
+            │   │ Inventory Service (8082)    │                     │
+            │   │ Stock Validation            │                     │
+            │   └─────────────────────────────┘                     │
+            └──────────────────────┬─────────────────────────────── ┘
+                                   │
+                          JDBC Connection
+                                   ▼
+                      AWS RDS PostgreSQL (Production)
+
 
 
 ---
@@ -61,7 +63,7 @@ This system consists of two independent microservices:
 
 | Component          | Technology                  |
 |-------------------|-----------------------------|
-| **Runtime**        | Java 17                     |
+| **Runtime**        | Java 17+                    |
 | **Framework**      | Spring Boot 3.2.x           |
 | **Database**       | AWS RDS PostgreSQL          |
 | **Message Broker** | RabbitMQ (Async Events)     |
@@ -147,24 +149,103 @@ Can scale horizontally:
 ### 5️⃣ Retry Safe
 Idempotent consumers avoid double-updates.
 
+## Project Structure
 
-# 🚀 How This Can Scale Further
+```
+order-management-system/
+├── inventory-service/
+│   ├── src/main/java/com/ecommerce/inventoryservice/
+│   │   ├── controller/      # REST controllers
+│   │   ├── service/         # Business logic
+│   │   ├── repository/      # Data access layer
+│   │   ├── model/           # JPA entities
+│   │   ├── dto/             # Data transfer objects
+│   │   ├── config/          # Configuration classes
+│   │   └── exception/       # Exception handlers
+│   ├── src/main/resources/
+│   │   └── application.properties
+│   └── pom.xml
+├── order-service/
+│   ├── src/main/java/com/ecommerce/orderservice/
+│   │   ├── controller/      # REST controllers
+│   │   ├── service/         # Business logic
+│   │   ├── repository/      # Data access layer
+│   │   ├── model/           # JPA entities
+│   │   ├── dto/             # Data transfer objects
+│   │   ├── config/          # Configuration classes
+│   │   └── exception/       # Exception handlers
+│   ├── src/main/resources/
+│   │   └── application.properties
+│   └── pom.xml
+├── docker-compose.yml       # RabbitMQ setup
+└── README.md
+```
 
-- ✔ **Kubernetes (EKS) Autoscaling**  
-  Pods scale automatically on CPU/traffic
+## 🚀 Scaling the System in a Production Environment
 
-- ✔ **Resilience4j (Circuit Breakers)**  
-  Prevents cascading failures
+To ensure the Order Management System can handle real-world traffic spikes and large-scale operations, the following production-grade scaling strategies can be applied:
 
-- ✔ **Rate Limiting**  
-  Redis / Bucket4j for traffic control
+### 1. Horizontal Scaling (Microservices-Level)
+- Deploy multiple instances of `order-service` and `inventory-service`.
+- Use a Load Balancer (AWS ALB/Nginx) to distribute traffic.
+- Stateless microservices ensure easy scaling.
+- Auto-scaling policies (CPU/Memory based) on AWS EC2/EKS.
 
-- ✔ **Kafka for High-Volume Event Streaming**  
-  Future upgrade over RabbitMQ
+### 2. Database Optimization
+- Use **AWS RDS with Multi-AZ** for failover and high availability.
+- Add **read replicas** for read-heavy operations (catalog browsing, reporting).
+- Add **indexes** on commonly queried fields
+- Use **partitioning** for large tables (orders grow rapidly).
+- Enable **connection pooling** (HikariCP).
 
-- ✔ **Distributed Tracing**  
-  OpenTelemetry + Jaeger/Zipkin
----
+### 3. Caching Layer (Redis)
+- Cache product reads to reduce DB queries.
+- Cache frequently accessed order summaries.
+- Useful for rate limiting as well.
+
+### 4. Queue-Based Load Management
+- Use RabbitMQ (or migrate to Kafka for higher throughput).
+- Offload heavy operations:
+    - Email/SMS notifications.
+    - Inventory updates.
+    - Order status workflows.
+- Messages ensure smooth processing even during peak loads.
+
+### 5. Circuit Breakers & Timeouts (Resilience4j)
+- Prevent system overload when one service fails.
+- Auto retries, fallbacks, and throttling protect upstream microservices.
+
+### 6. API Rate Limiting
+- Prevent malicious or accidental traffic bursts.
+- Implement Bucket4j/Redis-based throttling.
+- Helps prevent DB starvation.
+
+### 7. Distributed Tracing & Monitoring
+- Use OpenTelemetry + Jaeger/Zipkin to trace requests across microservices.
+- Integrate CloudWatch/Grafana for metrics:
+    - Request latency
+    - Queue backlog
+    - DB slow queries
+    - Error spikes
+
+### 8. Containerization & Orchestration
+- Use Docker for environment consistency.
+- Deploy using Kubernetes (EKS) for:
+    - Auto-healing
+    - Rolling deployments
+    - Auto-scaling
+    - Secret management
+
+### 9. CI/CD Automation
+- GitHub Actions / Jenkins for:
+    - Automated builds
+    - Unit tests
+    - Security scans (Snyk/OWASP)
+    - Blue-green deployments
+
+### 🔹 Summary
+By combining **horizontal scaling**, **database optimization**, **queue-based async processing**, and **cloud-native orchestration**, the system becomes fully capable of handling high production traffic such as festive season sales, flash deals, or global user spikes.
+
 
 # 🛠️ Local Setup Guide
 
@@ -179,7 +260,7 @@ Start by cloning the project from GitHub and navigating into the directory:
 ```bash
 # Clone repository
 git clone https://github.com/SHASHIDHAR2001/E-Commerce-Platform
-cd order-management-system
+cd E-Commerce-Platform
 
 # Set environment variables
 export PGHOST=your-rds-endpoint
@@ -291,38 +372,6 @@ curl -X POST http://localhost:8080/api/orders \
 curl -X PUT http://localhost:8080/api/orders/1/status \
   -H "Content-Type: application/json" \
   -d '{"status": "SHIPPED"}'
-```
-
-## Project Structure
-
-```
-order-management-system/
-├── inventory-service/
-│   ├── src/main/java/com/ecommerce/inventoryservice/
-│   │   ├── controller/      # REST controllers
-│   │   ├── service/         # Business logic
-│   │   ├── repository/      # Data access layer
-│   │   ├── model/           # JPA entities
-│   │   ├── dto/             # Data transfer objects
-│   │   ├── config/          # Configuration classes
-│   │   └── exception/       # Exception handlers
-│   ├── src/main/resources/
-│   │   └── application.properties
-│   └── pom.xml
-├── order-service/
-│   ├── src/main/java/com/ecommerce/orderservice/
-│   │   ├── controller/      # REST controllers
-│   │   ├── service/         # Business logic
-│   │   ├── repository/      # Data access layer
-│   │   ├── model/           # JPA entities
-│   │   ├── dto/             # Data transfer objects
-│   │   ├── config/          # Configuration classes
-│   │   └── exception/       # Exception handlers
-│   ├── src/main/resources/
-│   │   └── application.properties
-│   └── pom.xml
-├── docker-compose.yml       # RabbitMQ setup
-└── README.md
 ```
 
 ## Troubleshooting
