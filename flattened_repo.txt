@@ -252,6 +252,13 @@ networks:
             <optional>true</optional>
         </dependency>
 
+<!--        <dependency>-->
+<!--            <groupId>org.projectlombok</groupId>-->
+<!--            <artifactId>lombok</artifactId>-->
+<!--            <version>1.18.30</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -1143,6 +1150,13 @@ public class InventoryService {
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -1217,6 +1231,63 @@ public class OpenAPIConfig {
 </order-service/src/main/java/com/ecommerce/orderservice/config/OpenAPIConfig.java>
 
 <order-service/src/main/java/com/ecommerce/orderservice/config/RabbitMQConfig.java>
+//package com.ecommerce.orderservice.config;
+//
+//import org.springframework.amqp.core.Binding;
+//import org.springframework.amqp.core.BindingBuilder;
+//import org.springframework.amqp.core.Queue;
+//import org.springframework.amqp.core.TopicExchange;
+//import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+//import org.springframework.amqp.rabbit.core.RabbitTemplate;
+//import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+//import org.springframework.amqp.support.converter.MessageConverter;
+//import org.springframework.beans.factory.annotation.Value;
+//import org.springframework.context.annotation.Bean;
+//import org.springframework.context.annotation.Configuration;
+//
+//@Configuration
+//public class RabbitMQConfig {
+//
+//    @Value("${rabbitmq.queue.order}")
+//    private String orderQueue;
+//
+//    @Value("${rabbitmq.exchange.order}")
+//    private String orderExchange;
+//
+//    @Value("${rabbitmq.routing.key.order}")
+//    private String orderRoutingKey;
+//
+//    @Bean
+//    public Queue orderQueue() {
+//        return new Queue(orderQueue, true);
+//    }
+//
+//    @Bean
+//    public TopicExchange orderExchange() {
+//        return new TopicExchange(orderExchange);
+//    }
+//
+//    @Bean
+//    public Binding orderBinding() {
+//        return BindingBuilder
+//                .bind(orderQueue())
+//                .to(orderExchange())
+//                .with(orderRoutingKey);
+//    }
+//
+//    @Bean
+//    public MessageConverter messageConverter() {
+//        return new Jackson2JsonMessageConverter();
+//    }
+//
+//    @Bean
+//    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+//        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
+//        rabbitTemplate.setMessageConverter(messageConverter());
+//        return rabbitTemplate;
+//    }
+//}
+
 package com.ecommerce.orderservice.config;
 
 import org.springframework.amqp.core.Binding;
@@ -1245,7 +1316,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue orderQueue() {
-        return new Queue(orderQueue, true);
+        return new Queue(orderQueue, true); // durable queue
     }
 
     @Bean
@@ -1408,6 +1479,9 @@ public class OrderRequest {
     @Email(message = "Invalid email format")
     private String customerEmail;
 
+    @NotBlank(message = "Customer phone is required")
+    private String customerPhone;
+
     @NotBlank(message = "Shipping address is required")
     private String shippingAddress;
 
@@ -1439,6 +1513,7 @@ import java.util.stream.Collectors;
 public class OrderResponse {
     private Long id;
     private String customerName;
+    private String customerPhone;
     private String customerEmail;
     private String shippingAddress;
     private OrderStatus status;
@@ -1452,6 +1527,7 @@ public class OrderResponse {
         response.setId(order.getId());
         response.setCustomerName(order.getCustomerName());
         response.setCustomerEmail(order.getCustomerEmail());
+        response.setCustomerPhone(order.getCustomerPhone());
         response.setShippingAddress(order.getShippingAddress());
         response.setStatus(order.getStatus());
         response.setTotalAmount(order.getTotalAmount());
@@ -1474,6 +1550,7 @@ class OrderItemResponse {
     private Integer quantity;
     private BigDecimal price;
     private BigDecimal subtotal;
+
 
     public static OrderItemResponse fromEntity(OrderItem item) {
         OrderItemResponse response = new OrderItemResponse();
@@ -1749,6 +1826,9 @@ public class Order {
     @Column(nullable = false)
     private String customerEmail;
 
+    @Column(name = "customer_phone", length = 20)
+    private String customerPhone;
+
     @Column(nullable = false)
     private String shippingAddress;
 
@@ -1879,14 +1959,99 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
 </order-service/src/main/java/com/ecommerce/orderservice/repository/OrderRepository.java>
 
+<order-service/src/main/java/com/ecommerce/orderservice/service/EmailService.java>
+package com.ecommerce.orderservice.service;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+
+@Service
+public class EmailService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
+
+    private final JavaMailSender mailSender;
+
+    @Value("${app.mail.from.address}")
+    private String fromAddress;
+
+    @Value("${app.mail.from.name}")
+    private String fromName;
+
+    public EmailService(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    public void sendOrderConfirmationEmail(
+            String toEmail,
+            Long orderId,
+            BigDecimal totalAmount,
+            String status,
+            List<Map<String, Object>> items
+    ) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(toEmail);
+            helper.setFrom(fromAddress, fromName);
+            helper.setSubject("Order Confirmation - Order #" + orderId);
+
+            StringBuilder html = new StringBuilder();
+            html.append("<h2>Thank you for your order!</h2>");
+            html.append("<p>Your order <strong>#").append(orderId)
+                    .append("</strong> is currently <strong>").append(status).append("</strong>.</p>");
+            html.append("<p>Total Amount: <strong>").append(totalAmount).append("</strong></p>");
+
+            if (items != null && !items.isEmpty()) {
+                html.append("<h3>Items:</h3>");
+                html.append("<ul>");
+                for (Map<String, Object> item : items) {
+                    html.append("<li>")
+                            .append("Product ID: ").append(item.get("productId"))
+                            .append(", Quantity: ").append(item.get("quantity"))
+                            .append(", Price: ").append(item.get("price"))
+                            .append("</li>");
+                }
+                html.append("</ul>");
+            }
+
+            helper.setText(html.toString(), true);
+
+            mailSender.send(message);
+            logger.info("Order confirmation email sent to {}", toEmail);
+        } catch (MessagingException e) {
+            logger.error("Error while building order confirmation email", e);
+            // you can throw here to trigger RabbitMQ retry if configured
+        } catch (Exception e) {
+            logger.error("Error while sending order confirmation email", e);
+        }
+    }
+}
+
+</order-service/src/main/java/com/ecommerce/orderservice/service/EmailService.java>
+
 <order-service/src/main/java/com/ecommerce/orderservice/service/OrderMessageConsumer.java>
 package com.ecommerce.orderservice.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -1894,16 +2059,74 @@ public class OrderMessageConsumer {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderMessageConsumer.class);
 
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private SmsService smsService;
+
     @RabbitListener(queues = "${rabbitmq.queue.order}")
     public void consumeOrderMessage(Map<String, Object> orderEvent) {
-        logger.info("Received order event from queue");
-        logger.info("Order ID: {}", orderEvent.get("orderId"));
-        logger.info("Customer Email: {}", orderEvent.get("customerEmail"));
-        logger.info("Status: {}", orderEvent.get("status"));
-        logger.info("Total Amount: {}", orderEvent.get("totalAmount"));
-        logger.info("Order processing completed successfully");
+        logger.info("Received order event from queue: {}", orderEvent);
+
+        Long orderId = ((Number) orderEvent.get("orderId")).longValue();
+        String customerEmail = (String) orderEvent.get("customerEmail");
+        String status = (String) orderEvent.get("status");
+        BigDecimal totalAmount = new BigDecimal(orderEvent.get("totalAmount").toString());
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> items = (List<Map<String, Object>>) orderEvent.get("items");
+
+        String customerPhone = (String) orderEvent.get("customerPhone");
+
+        // send email async
+        emailService.sendOrderConfirmationEmail(
+                customerEmail,
+                orderId,
+                totalAmount,
+                status,
+                items
+        );
+        logger.info(customerPhone);
+
+        smsService.sendOrderConfirmationSms(
+                customerPhone,
+                orderId,
+                totalAmount,
+                status
+        );
+
+        logger.info("Order processing (email + SMS) completed for orderId={}", orderId);
     }
 }
+
+
+
+//package com.ecommerce.orderservice.service;
+//
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
+//import org.springframework.amqp.rabbit.annotation.RabbitListener;
+//import org.springframework.stereotype.Service;
+//
+//import java.util.Map;
+//
+//@Service
+//public class OrderMessageConsumer {
+//
+//    private static final Logger logger = LoggerFactory.getLogger(OrderMessageConsumer.class);
+//
+//    @RabbitListener(queues = "${rabbitmq.queue.order}")
+//    public void consumeOrderMessage(Map<String, Object> orderEvent) {
+//        logger.info("Received order event from queue");
+//        logger.info("Order ID: {}", orderEvent.get("orderId"));
+//        logger.info("Customer Email: {}", orderEvent.get("customerEmail"));
+//        logger.info("Status: {}", orderEvent.get("status"));
+//        logger.info("Total Amount: {}", orderEvent.get("totalAmount"));
+//        logger.info("Order processing completed successfully");
+//    }
+//}
+
 
 </order-service/src/main/java/com/ecommerce/orderservice/service/OrderMessageConsumer.java>
 
@@ -1969,6 +2192,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setCustomerName(request.getCustomerName());
+        order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerEmail(request.getCustomerEmail());
         order.setShippingAddress(request.getShippingAddress());
         order.setStatus(OrderStatus.PENDING);
@@ -2106,27 +2330,135 @@ public class OrderService {
             orderEvent.put("customerEmail", order.getCustomerEmail());
             orderEvent.put("status", order.getStatus().toString());
             orderEvent.put("totalAmount", order.getTotalAmount());
-            
+
+            orderEvent.put("customerPhone", order.getCustomerPhone());
+
             List<Map<String, Object>> items = order.getOrderItems().stream()
-                .map(item -> {
-                    Map<String, Object> itemMap = new HashMap<>();
-                    itemMap.put("productId", item.getProductId());
-                    itemMap.put("quantity", item.getQuantity());
-                    return itemMap;
-                })
-                .collect(Collectors.toList());
-            
+                    .map(item -> {
+                        Map<String, Object> itemMap = new HashMap<>();
+                        itemMap.put("productId", item.getProductId());
+                        itemMap.put("quantity", item.getQuantity());
+                        itemMap.put("price", item.getPrice());
+                        itemMap.put("subtotal", item.getSubtotal());
+                        return itemMap;
+                    })
+                    .collect(Collectors.toList());
+
             orderEvent.put("items", items);
-            
+
             rabbitTemplate.convertAndSend(orderExchange, orderRoutingKey, orderEvent);
             logger.info("Order event published for order ID: {}", order.getId());
         } catch (Exception e) {
             logger.error("Error publishing order event: ", e);
         }
     }
+
 }
 
 </order-service/src/main/java/com/ecommerce/orderservice/service/OrderService.java>
+
+<order-service/src/main/java/com/ecommerce/orderservice/service/SmsService.java>
+package com.ecommerce.orderservice.service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
+
+@Service
+public class SmsService {
+
+    private static final Logger logger = LoggerFactory.getLogger(SmsService.class);
+
+    private final RestTemplate restTemplate;
+
+    @Value("${brevo.sms.apiKey}")
+    private String apiKey;
+
+    @Value("${brevo.sms.url}")
+    private String smsUrl;
+
+    @Value("${brevo.sms.sender}")
+    private String sender;
+
+//    @Value("${brevo.sms.sendermobile}")
+//    private String sendermobile;
+
+
+    @Value("${brevo.sms.type}")
+    private String smsType;
+
+    @Value("${brevo.sms.tag}")
+    private String smsTag;
+
+    @Value("${brevo.sms.callbackUrl:}")
+    private String callbackUrl;
+
+    public SmsService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    /**
+     * Sends an order confirmation SMS via Brevo Transactional SMS API.
+     */
+    public void sendOrderConfirmationSms(
+            String phoneNumber,
+            Long orderId,
+            BigDecimal totalAmount,
+            String status
+    ) {
+        if (phoneNumber == null || phoneNumber.isBlank()) {
+            logger.warn("No phone number provided for order {}, skipping SMS", orderId);
+            return;
+        }
+
+        try {
+            // SMS text (keep it short; 160 chars per SMS segment)
+            String content = String.format(
+                    "Hi! Your order #%d is %s. Total: %s. Thank you!",
+                    orderId,
+                    status,
+                    totalAmount
+            );
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("sender", sender);
+            body.put("recipient", phoneNumber);  // e.g. 91XXXXXXXXXX (check Brevo format for your country)
+            body.put("content", content);
+            body.put("type", smsType);          // transactional / marketing
+            body.put("tag", smsTag);
+
+            if (callbackUrl != null && !callbackUrl.isBlank()) {
+                body.put("webUrl", callbackUrl);  // Brevo will call this URL with SMS events :contentReference[oaicite:1]{index=1}
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("accept", "application/json");
+            headers.set("api-key", apiKey);      // Brevo auth header :contentReference[oaicite:2]{index=2}
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<String> response =
+                    restTemplate.postForEntity(smsUrl, request, String.class);
+
+            logger.info("Brevo SMS response for order {}: status={}, body={}",
+                    orderId, response.getStatusCode(), response.getBody());
+
+        } catch (Exception e) {
+            logger.error("Error while sending SMS for order {}", orderId, e);
+            // You can throw a runtime exception here to let RabbitMQ retry if you configure retries
+        }
+    }
+}
+
+</order-service/src/main/java/com/ecommerce/orderservice/service/SmsService.java>
 
 <postman-collection.json>
 {
@@ -2814,7 +3146,7 @@ The system implements comprehensive error handling with appropriate HTTP status 
 │                                                          │
 │  ┌──────────────┐       ┌──────────────┐               │
 │  │   EC2 (t2.micro)    │   RDS PostgreSQL │           │
-│  │  ┌──────────┐       │   (Free Tier)     │           │
+│  │  ┌──────────┐       │                 │
 │  │  │ Order    │       └──────────────┘               │
 │  │  │ Service  │              │                        │
 │  │  │ (8080)   │◄─────────────┘                        │
