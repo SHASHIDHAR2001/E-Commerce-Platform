@@ -1,394 +1,184 @@
-# E-Commerce Order Management System - Microservices
+# 🚀 E-Commerce Order Management System – Microservices (Java + Spring Boot + AWS)
 
-A scalable microservices-based Order Management System built with Spring Boot, featuring asynchronous processing, comprehensive API documentation, and production-ready error handling.
+A fully scalable and production-ready **Order Management System (OMS)** designed using microservices architecture.  
+Built as part of the *E-Commerce Platform Case Study* and deployed on **AWS EC2** with PostgreSQL + RabbitMQ.
 
-## Architecture Overview
+---
+
+## 📌 Live Swagger APIs (Hosted on AWS)
+
+| Service | Swagger URL |
+|--------|-------------|
+| **Order Service (8081)** | http://54.253.150.76:8081/swagger-ui/index.html |
+| **Inventory Service (8082)** | http://54.253.150.76:8082/swagger-ui/index.html |
+
+Both APIs come with **full Swagger documentation** and are easily testable.
+
+---
+
+# 🏗️ Architecture Overview
 
 This system consists of two independent microservices:
 
-### 1. **Inventory Service** (Port 8000)
+### 1. **Inventory Service** (Port 8082)
 - Product management with CRUD operations
 - Stock control with pessimistic locking to prevent race conditions
 - Real-time inventory tracking and validation
 
-### 2. **Order Service** (Port 8080)
+### 2. **Order Service** (Port 8081)
 - Order placement with automated inventory validation
 - Order status management with state transition validation
 - Integration with Inventory Service for stock verification
 
-## Technology Stack
+                     ┌──────────────────────────┐
+                     │      Client / Admin UI   │
+                     └──────────────┬───────────┘
+                                    │ REST APIs
+                                    ▼
+        ┌───────────────────────────────────────────────────────┐
+        │                          AWS EC2                      │
+        │                                                       │
+        │   ┌─────────────────────────────┐    ┌────────────┐  │
+        │   │  Order Service (8081)      │    │ RabbitMQ    │  │
+        │   │  REST + Async Events       │    │ 5672/15672   │  │
+        │   └─────────────────────────────┘    └────────────┘  │
+        │                ▲ REST Call                           │
+        │                │                                      │
+        │   ┌─────────────────────────────┐                    │
+        │   │ Inventory Service (8082)   │                    │
+        │   │ Stock Validation           │                    │
+        │   └─────────────────────────────┘                    │
+        └──────────────────────┬───────────────────────────────┘
+                               │
+                      JDBC Connection
+                               ▼
+                  AWS RDS PostgreSQL (Production)
 
-- **Framework**: Spring Boot 3.2.0
-- **Language**: Java 17
-- **Database**: PostgreSQL (NeonDB)
-- **Message Queue**: RabbitMQ (async processing)
-- **API Documentation**: Swagger/OpenAPI 3.0
-- **Build Tool**: Maven
-- **ORM**: Hibernate/JPA
 
-## Key Features
+---
 
-### Functional Requirements
-✅ Order placement with inventory validation  
-✅ Automatic stock reduction on order confirmation  
-✅ Order status tracking (Pending → Confirmed → Shipped → Delivered)  
-✅ Product inventory management  
-✅ Race condition handling with pessimistic locking  
-✅ RESTful API design  
+# 🧰 Tech Stack
 
-### Non-Functional Requirements
-✅ Comprehensive error handling with meaningful HTTP status codes  
-✅ Logging framework (SLF4J/Logback) for all operations  
-✅ Swagger UI for interactive API testing  
-✅ Async message processing with RabbitMQ  
-✅ Database transactions for data consistency  
-✅ Input validation with detailed error messages  
+| Component          | Technology                  |
+|-------------------|-----------------------------|
+| **Runtime**        | Java 17                     |
+| **Framework**      | Spring Boot 3.2.x           |
+| **Database**       | AWS RDS PostgreSQL          |
+| **Message Broker** | RabbitMQ (Async Events)     |
+| **Deployment**     | AWS EC2 (Amazon Linux 2023) |
+| **ORM**            | JPA / Hibernate             |
+| **Documentation**  | Swagger / OpenAPI           |
+| **Build Tool**     | Maven                       |
+| **Logging**        | SLF4J + Logback             |
 
-## Getting Started
+---
 
-### Prerequisites
-- Java 17 or higher
-- Maven 3.6+
-- PostgreSQL database
-- RabbitMQ (optional, for async features)
+# 📦 Microservices Included
 
-### Environment Variables
-The following environment variables are required:
-```bash
-# Database Configuration
-PGHOST=your-database-host
-PGPORT=5432
-PGDATABASE=your-database-name
-PGUSER=your-database-user
-PGPASSWORD=your-database-password
+## ✅ 1. Order Service (8081)
+Handles:
+- Place orders
+- Validate stock from Inventory Service
+- Calculate total amount
+- Update order status
+- Publish events to RabbitMQ
+- Send async email/SMS notifications
 
-# RabbitMQ Configuration (Optional)
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USERNAME=guest
-RABBITMQ_PASSWORD=guest
-```
+## ✅ 2. Inventory Service (8082)
+Handles:
+- Product CRUD
+- Stock add/remove
+- Concurrency safety with **PESSIMISTIC_WRITE** locking
+- Consumes RabbitMQ events
+- Prevents overselling
 
-### Build and Run
+---
 
-#### Build Both Services
-```bash
-# Build Inventory Service
-cd inventory-service
-mvn clean package -DskipTests
+# 📨 RabbitMQ Usage (Async & Scalable)
 
-# Build Order Service
-cd ../order-service
-mvn clean package -DskipTests
-```
+### Why RabbitMQ?
+- Prevents API slowdown during traffic spikes
+- Handles queue-based load distribution
+- Decouples services
+- Ensures guaranteed message delivery
 
-#### Run Services
-```bash
-# Run Inventory Service (Terminal 1)
-cd inventory-service
-java -jar target/inventory-service-1.0.0.jar
+### Used For:
+1. Order confirmation email/SMS using Brevo API
+2. Order status notifications
+3. Background inventory updates
 
-# Run Order Service (Terminal 2)
-cd order-service
-java -jar target/order-service-1.0.0.jar
-```
+---
 
-## API Documentation
+# 🗄️ Database Schema
 
-### Inventory Service APIs
+The complete schema is available at:  
+`database-schema.sql`
 
-**Base URL**: `http://localhost:8000/api/inventory`
+## 📋 Includes
+- `products` table
+- `orders` table
+- `order_items` table
+- triggers
+- indexes
+- sample data
+- monitoring views
 
-#### Product Management
+# ⚡ Scalability Decisions
 
-**Create Product**
-```http
-POST /products
-Content-Type: application/json
+### 1️⃣ Async Order Processing
+Using RabbitMQ:
+- Order request returns fast
+- Heavy tasks run in background
+- Can handle sudden traffic spikes
 
-{
-  "sku": "PROD-001",
-  "name": "Wireless Mouse",
-  "description": "Ergonomic wireless mouse with USB receiver",
-  "price": 29.99,
-  "stockQuantity": 100,
-  "active": true
-}
-```
+### 2️⃣ Database Locking (No Overselling)
+- Inventory updates use **PESSIMISTIC_WRITE** lock
+- Ensures stock integrity
 
-**Get All Products**
-```http
-GET /products
-```
+### 3️⃣ Stateless Microservices
+Can scale horizontally:
+- docker-compose up --scale order-service=5
 
-**Get Product by ID**
-```http
-GET /products/{id}
-```
+### 4️⃣ Database Scaling
+- Read replicas
+- Partitioning in high-volume tables
+- Proper indexes included
 
-**Update Product**
-```http
-PUT /products/{id}
-Content-Type: application/json
+### 5️⃣ Retry Safe
+Idempotent consumers avoid double-updates.
 
-{
-  "sku": "PROD-001",
-  "name": "Wireless Mouse Pro",
-  "description": "Updated description",
-  "price": 34.99,
-  "stockQuantity": 150,
-  "active": true
-}
-```
 
-**Delete Product**
-```http
-DELETE /products/{id}
-```
+# 🚀 How This Can Scale Further
 
-#### Stock Management
+- ✔ **Kubernetes (EKS) Autoscaling**  
+  Pods scale automatically on CPU/traffic
 
-**Add Stock**
-```http
-POST /products/{id}/add-stock
-Content-Type: application/json
+- ✔ **Resilience4j (Circuit Breakers)**  
+  Prevents cascading failures
 
-{
-  "quantity": 50
-}
-```
+- ✔ **Rate Limiting**  
+  Redis / Bucket4j for traffic control
 
-**Reduce Stock**
-```http
-POST /products/{id}/reduce-stock
-Content-Type: application/json
+- ✔ **Kafka for High-Volume Event Streaming**  
+  Future upgrade over RabbitMQ
 
-{
-  "quantity": 10
-}
-```
+- ✔ **Distributed Tracing**  
+  OpenTelemetry + Jaeger/Zipkin
+---
 
-**Check Stock Availability**
-```http
-GET /products/{id}/check-stock?quantity=5
-```
+# 🛠️ Local Setup Guide
 
-### Order Service APIs
+# 🛒 E-Commerce Platform Setup Guide
 
-**Base URL**: `http://localhost:8080/api/orders`
+This guide provides the necessary steps to clone the repository and start the required services for the E-Commerce Platform microservices project.
 
-#### Order Management
-
-**Create Order**
-```http
-POST /
-Content-Type: application/json
-
-{
-  "customerName": "John Doe",
-  "customerEmail": "john.doe@example.com",
-  "shippingAddress": "123 Main St, New York, NY 10001",
-  "items": [
-    {
-      "productId": 1,
-      "quantity": 2
-    },
-    {
-      "productId": 2,
-      "quantity": 1
-    }
-  ]
-}
-```
-
-**Get All Orders**
-```http
-GET /
-```
-
-**Get Order by ID**
-```http
-GET /{id}
-```
-
-**Get Orders by Status**
-```http
-GET /status/{status}
-
-# Valid statuses: PENDING, CONFIRMED, SHIPPED, DELIVERED, CANCELLED
-```
-
-**Get Orders by Customer Email**
-```http
-GET /customer/{email}
-```
-
-**Update Order Status**
-```http
-PUT /{id}/status
-Content-Type: application/json
-
-{
-  "status": "SHIPPED"
-}
-```
-
-## Swagger UI
-
-Access interactive API documentation:
-
-- **Inventory Service**: http://localhost:8000/swagger-ui.html
-- **Order Service**: http://localhost:8080/swagger-ui.html
-
-## Database Schema
-
-### Products Table (Inventory Service)
-```sql
-CREATE TABLE products (
-    id BIGSERIAL PRIMARY KEY,
-    sku VARCHAR(255) NOT NULL UNIQUE,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    price NUMERIC(10,2) NOT NULL,
-    stock_quantity INTEGER NOT NULL DEFAULT 0,
-    active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL,
-    version BIGINT
-);
-```
-
-### Orders Table (Order Service)
-```sql
-CREATE TABLE orders (
-    id BIGSERIAL PRIMARY KEY,
-    customer_name VARCHAR(255) NOT NULL,
-    customer_email VARCHAR(255) NOT NULL,
-    shipping_address VARCHAR(255) NOT NULL,
-    status VARCHAR(50) NOT NULL CHECK (status IN ('PENDING','CONFIRMED','SHIPPED','DELIVERED','CANCELLED')),
-    total_amount NUMERIC(10,2) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    updated_at TIMESTAMP NOT NULL
-);
-
-CREATE TABLE order_items (
-    id BIGSERIAL PRIMARY KEY,
-    order_id BIGINT NOT NULL REFERENCES orders(id),
-    product_id BIGINT NOT NULL,
-    product_name VARCHAR(255) NOT NULL,
-    quantity INTEGER NOT NULL,
-    price NUMERIC(10,2) NOT NULL,
-    subtotal NUMERIC(10,2) NOT NULL
-);
-```
-
-## Error Handling
-
-The system implements comprehensive error handling with appropriate HTTP status codes:
-
-| Status Code | Description |
-|------------|-------------|
-| 200 OK | Successful request |
-| 201 Created | Resource created successfully |
-| 400 Bad Request | Validation error or invalid request |
-| 404 Not Found | Resource not found |
-| 409 Conflict | Duplicate resource (e.g., SKU already exists) |
-| 500 Internal Server Error | Unexpected server error |
-
-### Error Response Format
-```json
-{
-  "status": 400,
-  "message": "Validation failed",
-  "errors": {
-    "customerName": "Customer name is required",
-    "customerEmail": "Invalid email format"
-  },
-  "timestamp": "2025-11-19T06:00:00"
-}
-```
-
-## AWS Deployment Guide
-
-### Deployment Architecture
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                     AWS Cloud                            │
-│                                                          │
-│  ┌──────────────┐       ┌──────────────┐               │
-│  │   EC2 (t2.micro)    │   RDS PostgreSQL │           │
-│  │  ┌──────────┐       │                 │
-│  │  │ Order    │       └──────────────┘               │
-│  │  │ Service  │              │                        │
-│  │  │ (8080)   │◄─────────────┘                        │
-│  │  └──────────┘                                       │
-│  │                                                      │
-│  │  ┌──────────┐                                       │
-│  │  │Inventory │                                       │
-│  │  │ Service  │                                       │
-│  │  │ (8000)   │                                       │
-│  │  └──────────┘                                       │
-│  │                                                      │
-│  │  ┌──────────┐                                       │
-│  │  │ RabbitMQ │                                       │
-│  │  │ (Docker) │                                       │
-│  │  └──────────┘                                       │
-│  └──────────────┘                                       │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Step-by-Step Deployment
-
-#### 1. Setup EC2 Instance (Free Tier)
-```bash
-# Launch EC2 t2.micro instance with Ubuntu 22.04
-# Configure Security Group:
-# - Port 22 (SSH)
-# - Port 8000 (Inventory Service)
-# - Port 8080 (Order Service)
-# - Port 5672 (RabbitMQ)
-
-# Connect to EC2
-ssh -i your-key.pem ubuntu@your-ec2-ip
-```
-
-#### 2. Install Java and Maven
-```bash
-sudo apt update
-sudo apt install openjdk-17-jdk maven git -y
-java -version
-mvn -version
-```
-
-#### 3. Install Docker and RabbitMQ
-```bash
-# Install Docker
-sudo apt install docker.io -y
-sudo systemctl start docker
-sudo systemctl enable docker
-sudo usermod -aG docker ubuntu
-
-# Run RabbitMQ
-docker run -d --name rabbitmq \
-  -p 5672:5672 \
-  -p 15672:15672 \
-  rabbitmq:3-management
-```
-
-#### 4. Setup RDS PostgreSQL (Free Tier)
-```
-# In AWS Console:
-# 1. Create RDS PostgreSQL instance (db.t3.micro or db.t4g.micro for free tier)
-# 2. Select "Free tier" template
-# 3. Note down: endpoint, port, username, password, database name
-# 4. Configure security group to allow connections from EC2
-```
+## 📥 Clone the Repository
+Start by cloning the project from GitHub and navigating into the directory:
 
 #### 5. Clone and Build
 ```bash
 # Clone repository
-git clone <your-repo-url>
+git clone https://github.com/SHASHIDHAR2001/E-Commerce-Platform
 cd order-management-system
 
 # Set environment variables
@@ -464,38 +254,6 @@ sudo systemctl enable order-service
 sudo systemctl status inventory-service
 sudo systemctl status order-service
 ```
-
-#### 7. Setup Nginx Reverse Proxy (Optional)
-```bash
-sudo apt install nginx -y
-
-# Configure /etc/nginx/sites-available/default
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location /api/inventory {
-        proxy_pass http://localhost:8000/api/inventory;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-
-    location /api/orders {
-        proxy_pass http://localhost:8080/api/orders;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-
-sudo nginx -t
-sudo systemctl restart nginx
-```
-
-### Cost Estimation (Free Tier)
-- **EC2 t2.micro**: 750 hours/month free
-- **RDS db.t3.micro**: 750 hours/month free
-- **Data Transfer**: 15GB/month free
-- **Total**: $0/month within free tier limits
 
 ## Testing
 
@@ -584,23 +342,3 @@ order-management-system/
 - Change ports in `application.properties`
 - Kill existing process: `lsof -ti:8080 | xargs kill`
 
-## Future Enhancements
-
-- [ ] Implement rate limiting with bucket4j
-- [ ] Add Redis caching layer
-- [ ] Implement retry mechanism for failed orders
-- [ ] Add API Gateway with Spring Cloud Gateway
-- [ ] Implement circuit breaker pattern
-- [ ] Add distributed tracing with Zipkin
-- [ ] Implement database read replicas
-- [ ] Add comprehensive unit and integration tests
-
-## Contact
-
-For questions or support:
-- Email: ashutosh.t@sunking.com
-- Phone: 9958762772
-
-## License
-
-This project is developed as a case study for backend developer assessment.
