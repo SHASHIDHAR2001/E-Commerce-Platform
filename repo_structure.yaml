@@ -1,0 +1,361 @@
+  - path: /attached_assets
+    type: directory
+    contents:
+    - path: /attached_assets/Case Study R2 (for Backend Developer) - Shashidhar T S_1763531478603.pdf
+      type: file
+  - path: /database-schema.sql
+    type: file
+  - path: /docker-compose.yml
+    type: file
+  - path: /inventory-service
+    type: directory
+    contents:
+    - path: /inventory-service/pom.xml
+      type: file
+    - path: /inventory-service/src
+      type: directory
+      contents:
+      - path: /inventory-service/src/main
+        type: directory
+        contents:
+        - path: /inventory-service/src/main/java
+          type: directory
+          contents:
+          - path: /inventory-service/src/main/java/com
+            type: directory
+            contents:
+            - path: /inventory-service/src/main/java/com/ecommerce
+              type: directory
+              contents:
+              - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice
+                type: directory
+                contents:
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/config
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/config/OpenAPIConfig.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/config/RabbitMQConfig.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/controller
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/controller/InventoryController.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/dto
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/dto/ProductRequest.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/dto/ProductResponse.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/dto/ReserveStockRequest.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/dto/StockUpdateRequest.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/exception
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/exception/DuplicateProductException.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/exception/GlobalExceptionHandler.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/exception/InsufficientStockException.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/exception/ProductNotFoundException.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/InventoryServiceApplication.java
+                  type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/model
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/model/Product.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/repository
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/repository/ProductRepository.java
+                    type: file
+                - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/service
+                  type: directory
+                  contents:
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/service/InventoryMessageConsumer.java
+                    type: file
+                  - path: /inventory-service/src/main/java/com/ecommerce/inventoryservice/service/InventoryService.java
+                    type: file
+        - path: /inventory-service/src/main/resources
+          type: directory
+          contents:
+          - path: /inventory-service/src/main/resources/application.properties
+            type: file
+    - path: /inventory-service/target
+      type: directory
+      contents:
+      - path: /inventory-service/target/classes
+        type: directory
+        contents:
+        - path: /inventory-service/target/classes/application.properties
+          type: file
+        - path: /inventory-service/target/classes/com
+          type: directory
+          contents:
+          - path: /inventory-service/target/classes/com/ecommerce
+            type: directory
+            contents:
+            - path: /inventory-service/target/classes/com/ecommerce/inventoryservice
+              type: directory
+              contents:
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/config
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/config/OpenAPIConfig.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/config/RabbitMQConfig.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/controller
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/controller/InventoryController.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/dto
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/dto/ProductRequest.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/dto/ProductResponse.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/dto/ReserveStockRequest.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/dto/StockUpdateRequest.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/DuplicateProductException.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/ErrorResponse.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/GlobalExceptionHandler.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/InsufficientStockException.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/ProductNotFoundException.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/exception/ValidationErrorResponse.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/InventoryServiceApplication.class
+                type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/model
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/model/Product.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/repository
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/repository/ProductRepository.class
+                  type: file
+              - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/service
+                type: directory
+                contents:
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/service/InventoryMessageConsumer.class
+                  type: file
+                - path: /inventory-service/target/classes/com/ecommerce/inventoryservice/service/InventoryService.class
+                  type: file
+      - path: /inventory-service/target/generated-sources
+        type: directory
+        contents:
+        - path: /inventory-service/target/generated-sources/annotations
+          type: directory
+          contents:
+  - path: /order-service
+    type: directory
+    contents:
+    - path: /order-service/pom.xml
+      type: file
+    - path: /order-service/src
+      type: directory
+      contents:
+      - path: /order-service/src/main
+        type: directory
+        contents:
+        - path: /order-service/src/main/java
+          type: directory
+          contents:
+          - path: /order-service/src/main/java/com
+            type: directory
+            contents:
+            - path: /order-service/src/main/java/com/ecommerce
+              type: directory
+              contents:
+              - path: /order-service/src/main/java/com/ecommerce/orderservice
+                type: directory
+                contents:
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/config
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/config/AppConfig.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/config/OpenAPIConfig.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/config/RabbitMQConfig.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/controller
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/controller/OrderController.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/dto
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/dto/OrderItemRequest.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/dto/OrderRequest.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/dto/OrderResponse.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/dto/OrderStatusUpdateRequest.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/dto/ReserveStockRequest.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/exception
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/exception/GlobalExceptionHandler.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/exception/InsufficientStockException.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/exception/InvalidOrderStatusException.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/exception/OrderNotFoundException.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/exception/ProductNotFoundException.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/model
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/model/Order.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/model/OrderItem.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/model/OrderStatus.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/OrderServiceApplication.java
+                  type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/repository
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/repository/OrderRepository.java
+                    type: file
+                - path: /order-service/src/main/java/com/ecommerce/orderservice/service
+                  type: directory
+                  contents:
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/service/OrderMessageConsumer.java
+                    type: file
+                  - path: /order-service/src/main/java/com/ecommerce/orderservice/service/OrderService.java
+                    type: file
+        - path: /order-service/src/main/resources
+          type: directory
+          contents:
+          - path: /order-service/src/main/resources/application.properties
+            type: file
+    - path: /order-service/target
+      type: directory
+      contents:
+      - path: /order-service/target/classes
+        type: directory
+        contents:
+        - path: /order-service/target/classes/application.properties
+          type: file
+        - path: /order-service/target/classes/com
+          type: directory
+          contents:
+          - path: /order-service/target/classes/com/ecommerce
+            type: directory
+            contents:
+            - path: /order-service/target/classes/com/ecommerce/orderservice
+              type: directory
+              contents:
+              - path: /order-service/target/classes/com/ecommerce/orderservice/config
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/config/AppConfig.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/config/OpenAPIConfig.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/config/RabbitMQConfig.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/controller
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/controller/OrderController.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/dto
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/OrderItemRequest.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/OrderItemResponse.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/OrderRequest.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/OrderResponse.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/OrderStatusUpdateRequest.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/dto/ReserveStockRequest.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/exception
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/ErrorResponse.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/GlobalExceptionHandler.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/InsufficientStockException.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/InvalidOrderStatusException.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/OrderNotFoundException.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/ProductNotFoundException.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/exception/ValidationErrorResponse.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/model
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/model/Order.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/model/OrderItem.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/model/OrderStatus.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/OrderServiceApplication.class
+                type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/repository
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/repository/OrderRepository.class
+                  type: file
+              - path: /order-service/target/classes/com/ecommerce/orderservice/service
+                type: directory
+                contents:
+                - path: /order-service/target/classes/com/ecommerce/orderservice/service/OrderMessageConsumer.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/service/OrderService$1.class
+                  type: file
+                - path: /order-service/target/classes/com/ecommerce/orderservice/service/OrderService.class
+                  type: file
+      - path: /order-service/target/generated-sources
+        type: directory
+        contents:
+        - path: /order-service/target/generated-sources/annotations
+          type: directory
+          contents:
+  - path: /postman-collection.json
+    type: file
+  - path: /README.md
+    type: file
+  - path: /replit.md
+    type: file

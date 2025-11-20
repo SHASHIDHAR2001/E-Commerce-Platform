@@ -1,0 +1,12 @@
+target/
+*.class
+*.log
+*.iml
+.idea/
+*.jar
+*.war
+.local/
+target/
+.idea/
+node_modules/
+attached_assets/
